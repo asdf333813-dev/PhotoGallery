@@ -1,11 +1,12 @@
 package com.example.photogallery.network
 
 import retrofit2.http.GET
+import retrofit2.http.Query
 
 interface PicsumApi {
 
-    @GET("photos")
+    @GET("products")
     suspend fun fetchPhotos(
-        @retrofit2.http.Query("_limit") limit: Int = 30
-    ): List<PicsumPhoto>
+        @Query("limit") limit: Int = 20
+    ): PicsumResponse
 }

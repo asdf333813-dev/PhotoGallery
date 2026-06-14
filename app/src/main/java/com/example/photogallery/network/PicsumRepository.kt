@@ -12,13 +12,13 @@ class PicsumRepository {
         .build()
 
     private val retrofit = Retrofit.Builder()
-        .baseUrl("https://jsonplaceholder.typicode.com/")
+        .baseUrl("https://dummyjson.com/")
         .addConverterFactory(MoshiConverterFactory.create(moshi))
         .build()
 
     private val api = retrofit.create(PicsumApi::class.java)
 
     suspend fun fetchPhotos(): List<PicsumPhoto> {
-        return api.fetchPhotos(30)
+        return api.fetchPhotos().products
     }
 }
