@@ -33,15 +33,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.photogallery.database.FavoritesDatabase
 import com.example.photogallery.network.PicsumPhoto
 import com.example.photogallery.ui.theme.PhotoGalleryTheme
 import com.example.photogallery.viewmodel.PhotoGalleryViewModel
-import androidx.compose.ui.platform.LocalContext
-import coil.request.ImageRequest
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,10 +65,18 @@ fun PhotoGalleryScreen(
     val photos by viewModel.photos.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
+    val context = LocalContext.current
+    val favoritesDatabase = remember {
+        FavoritesDatabase(context)
+    }
+
     var searchText by remember { mutableStateOf("") }
     var menuExpanded by remember { mutableStateOf(false) }
     var showFavorites by remember { mutableStateOf(false) }
-    var favoritePhotos by remember { mutableStateOf<List<PicsumPhoto>>(emptyList()) }
+
+    var favoritePhotos by remember {
+        mutableStateOf(favoritesDatabase.getFavorites())
+    }
 
     val filteredPhotos = photos.filter {
         it.title.contains(searchText, ignoreCase = true) ||
@@ -111,6 +119,7 @@ fun PhotoGalleryScreen(
                         DropdownMenuItem(
                             text = { Text("Show favorites") },
                             onClick = {
+                                favoritePhotos = favoritesDatabase.getFavorites()
                                 showFavorites = true
                                 menuExpanded = false
                             }
@@ -127,6 +136,7 @@ fun PhotoGalleryScreen(
                         DropdownMenuItem(
                             text = { Text("Clear favorites") },
                             onClick = {
+                                favoritesDatabase.clearFavorites()
                                 favoritePhotos = emptyList()
                                 menuExpanded = false
                             }
@@ -175,9 +185,8 @@ fun PhotoGalleryScreen(
                     PhotoGrid(
                         photos = visiblePhotos,
                         onPhotoClick = { photo ->
-                            if (!favoritePhotos.contains(photo)) {
-                                favoritePhotos = favoritePhotos + photo
-                            }
+                            favoritesDatabase.addFavorite(photo)
+                            favoritePhotos = favoritesDatabase.getFavorites()
                         }
                     )
                 }
